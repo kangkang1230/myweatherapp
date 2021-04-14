@@ -2,33 +2,17 @@ package util;
 
 import android.text.TextUtils;
 
+import db.City;
+import db.Country;
+import db.Province;
+import gson.Weather;
 import com.google.gson.Gson;
 
 import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
-import db.City;
-import db.Country;
-import db.Province;
-import gson.Weather;
-
 public class Utility {
-    /*将返回的JSON数据解析成Weather实体类*/
-    public static Weather handleWeatherResponse(String response){
-        try {
-            //通过JSONObject和JSONArray将天气数据中的主体内容解析出来
-            JSONObject jsonObject = new JSONObject(response);
-            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
-            String weatherContent = jsonArray.getJSONObject(0).toString();
-            //将JSON数据转换成Weather对象
-            return new Gson().fromJson(weatherContent,Weather.class);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-        return null;
-    }
-
     /*解析和处理服务器返回的省级数据 */
     public static boolean handleProvinceResponse(String response){
         if (!TextUtils.isEmpty(response)){  //如果返回的数据不为空
@@ -52,7 +36,7 @@ public class Utility {
     }
 
     /*解析和处理服务器返回的市级数据 */
-    public static boolean handleCityResponse(String response, int provinceId){
+    public static boolean handleCityResponse(String response,int provinceId){
         if (!TextUtils.isEmpty(response)){
             try {
                 JSONArray allCities = new JSONArray(response);
@@ -61,7 +45,7 @@ public class Utility {
                     City city = new City();
                     city.setCityCode(cityObject.getInt("id"));
                     city.setCityName(cityObject.getString("name"));
-                    city.setProvinceId(provinceId);
+                    city.setProvinceId(provinceId);  //所属的省级代号
                     city.save();
                 }
                 return true;
@@ -71,6 +55,7 @@ public class Utility {
         }
         return false;
     }
+
     /*解析和处理服务器返回的县级数据 */
     public static boolean handleCountyResponse(String response,int cityId){
         if (!TextUtils.isEmpty(response)){
@@ -78,13 +63,13 @@ public class Utility {
                 JSONArray allCounties = new JSONArray(response);
                 for (int i=0;i<allCounties.length();i++){
                     JSONObject countyObject = allCounties.getJSONObject(i);
-                    Country county = new Country();
-                    county.setCountryName(countyObject.getString("name"));
+                    Country country = new Country();
+                    country.setCountryName(countyObject.getString("name"));
                     //县级天气信息
-                    county.setWeatherId(countyObject.getString("weather_id"));
+                    country.setWeatherId(countyObject.getString("weather_id"));
                     //所属的市级代号
-                    county.setCityId(cityId);
-                    county.save();
+                    country.setCityId(cityId);
+                    country.save();
                 }
                 return true;
             } catch (JSONException e) {
@@ -93,4 +78,32 @@ public class Utility {
         }
         return false;
     }
+
+    public static Weather handleWeatherResponse(String response) {
+        try {
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+            String weatherContent = jsonArray.getJSONObject(0).toString();
+            return new Gson().fromJson(weatherContent, Weather.class);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+        return null;
+    }
+
+    /*
+     *//*将返回的JSON数据解析成Weather实体类*//*
+    public static Weather handleWeatherResponse(String response){
+        try {
+            //通过JSONObject和JSONArray将天气数据中的主体内容解析出来
+            JSONObject jsonObject = new JSONObject(response);
+            JSONArray jsonArray = jsonObject.getJSONArray("HeWeather");
+            String weatherContent = jsonArray.getJSONObject(0).toString();
+            //将JSON数据转换成Weather对象
+            return new Gson().fromJson(weatherContent,Weather.class);
+        } catch (JSONException e) {
+            e.printStackTrace();
+        }
+        return null;
+    }*/
 }
